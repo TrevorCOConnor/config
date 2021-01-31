@@ -1,0 +1,12 @@
+name:              XmonadHelper
+version:           0.1
+synopsis:         Self made modules to help with XMonad
+description:
+    Switch - cycles audio output
+author:            Trevor
+maintainer:        Me 
+cabal-version:     >= 1.2
+build-type:        Simple
+library
+  Exposed-Modules: Switch
+  Build-Depends:   base >= 2.0, process, xmonad, xmonad-contrib

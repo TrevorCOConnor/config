@@ -1,0 +1,33 @@
+toupper-lazy2.hs is the less verbose version of toupper-lazy1.hs, but toupper-lazy1.hs is written
+to emphasize that you can mix pure functions with IO functions. The contents of the input handler
+are read lazily using 'hGetContents', and is abstracted form the IO monad using the IO join "<-"
+so that it's contents can be fed into a pure function. 
+
+But the best of all the methods is definitely toupper-lazy3.hs. It uses readFile which does not
+need to be imported from System.IO, and it handles hGetContents internally, returning just a lazy
+string for us to mess around with.
+
+Okay, I may have spoke too soon. toupper-lazy4.hs while maybe less applicable for a user facing
+program, is very nice for a terminal facing program (I don't think that's the correct
+terminology). It uses 'interact', which streamlines the process of getting input data from the
+terminal. It alos showed me how to use '<' and '>' in sh.
+    toupper-lazy4.hs < input.txt > output.txt
+which puts `input.txt` into `toupper-lazy4.hs` and then puts that output into `output.txt`.
+
+I made a comment in `actions.hs` about how convoluted it is, but it seems that was done for 
+emphasis as `actions2.hs` was written much more compactly with the same functionality. Moreover,
+we see `mapM_`, the long awaited way to use `map` to perform actions solely!
+
+Another reason I love Haskell is that the culture surrounding it is so similar to that of
+mathematics. The `do` notation has always been a bit mystical compared to the rest of Haskell. I 
+have always expected this was syntactic sugar for something. In `basicio-nodo.hs`. 
+
+`return1.hs` and `return2.hs` demonstrate the use of return in the context of the IO monad. Of
+course, having a bit of foresight into monads, I know that `return :: Monad m => a -> m a` is 
+the functor application of the monad on an object. They also emphasize, again, the importance of 
+separating the pure code from the ... impure(?) code. I need a better definition of "impure".
+
+Also learned a different thing than the intended lesson from `return3.hs`. Namely, that it is
+conventional to put a return statement at the end of a do block in Haskell. The lesson was that
+the return statement is not needed, but is often put there for conventions sake and readability.
+I have -- I think -- never put a return statement at the end of a do block, so...

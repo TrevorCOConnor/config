@@ -50,12 +50,18 @@ set splitbelow
 set splitright
 nnoremap n gj
 " changes down to visual down
+nnoremap N J
+" changes N to condense down
 nnoremap e gk
 " changes up to visual up
 noremap n j
 " changes n to down
+nnoremap j n
+" changes j to next
 noremap e k
 " changes e to up
+noremap k e
+" changes k to end
 noremap i l
 " changes i to right
 noremap l i

@@ -2,6 +2,7 @@ import XMonad
 import Control.Concurrent
 import Data.Monoid
 import System.Exit
+import XMonad.Actions.CycleWS
 import XMonad.Hooks.DynamicProperty
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.EZConfig
@@ -43,7 +44,7 @@ myModMask       = mod4Mask
 --
 -- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
 --
-myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
+myWorkspaces    = ["1","2","3","4","5","6","7","8","9:Spotify"]
 
 -- Border colors for unfocused and focused windows, respectively.
 --
@@ -82,8 +83,14 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Move focus to the next window
     , ((modm,               xK_j     ), windows W.focusDown)
 
+    -- Move focus to the next window
+    , ((modm,               xK_n     ), windows W.focusDown)
+
     -- Move focus to the previous window
     , ((modm,               xK_k     ), windows W.focusUp  )
+
+    -- Move focus to the previous window
+    , ((modm,               xK_e     ), windows W.focusUp  )
 
     -- Move focus to the master window
     , ((modm,               xK_m     ), windows W.focusMaster  )
@@ -94,8 +101,14 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Swap the focused window with the next window
     , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
 
+    -- Swap the focused window with the next window
+    , ((modm .|. shiftMask, xK_n     ), windows W.swapDown  )
+
     -- Swap the focused window with the previous window
     , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
+
+    -- Swap the focused window with the previous window
+    , ((modm .|. shiftMask, xK_e     ), windows W.swapUp    )
 
     -- Shrink the master area
     , ((modm,               xK_b     ), sendMessage Shrink)
@@ -143,13 +156,31 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm              , xK_grave) , switch)
 
     -- reset pacmd
-    , ((modm              , xK_Delete),  spawn "pacmd unload-module module-udev-detect && pacmd load-module module-udev-detect" )
+    , ((modm              , xK_asciitilde),  spawn "pulseaudio --kill; sleep 0.2; pulseaudio --start" )
 
     -- Quit xmonad
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
     , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
+
+    -- Next screen
+    , ((modm, xK_u), nextScreen)
+    
+    -- Send to next Screen
+    , ((modm .|. shiftMask, xK_u), shiftNextScreen)
+
+    -- Swap with next screen
+    , ((modm .|. controlMask, xK_u), swapNextScreen)
+
+    -- Prev screen
+    , ((modm, xK_l), prevScreen)
+    
+    -- Send to prev Screen
+    , ((modm .|. shiftMask, xK_l), shiftPrevScreen)
+
+    -- Swap with prev screen
+    , ((modm .|. controlMask, xK_l), swapPrevScreen)
 
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
     , ((modm .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
@@ -163,15 +194,15 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     [((m .|. modm, k), windows $ f i)
         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
         , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
-    ++
+     -- ++
 
-    --
-    -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
-    -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
-    --
-    [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_h, xK_l] [0..]
-        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+    ----
+    ---- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
+    ---- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
+    ----
+    --[((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
+    --    | (key, sc) <- zip [xK_u, xK_i, xK_o] [0..]
+    --    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
 ------------------------------------------------------------------------
@@ -278,6 +309,8 @@ myStartupHook = do
 --
 main = do
     xmproc <- spawnPipe "xmobar -x 0 /home/trevor/.config/xmobar/xmobarrc"
+    xmproc <- spawnPipe "xmobar -x 1 /home/trevor/.config/xmobar/xmobarrc"
+    xmproc <- spawnPipe "xmobar -x 2 /home/trevor/.config/xmobar/xmobarrc"
     xmonad $ docks defaults
 
 -- A structure containing your configuration settings, overriding

@@ -2,6 +2,7 @@ set nocompatible              " be iMproved, required
 filetype off                  " required
 
 set spelllang=en
+set cmdheight=2
 
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -19,24 +20,12 @@ Plugin 'lervag/vimtex'
 Plugin 'dense-analysis/ale'
 Plugin 'christoomey/vim-titlecase'
 Plugin 'preservim/vim-lexical' 
+Plugin 'ionide/ionide-vim'
+Plugin 'neoclide/coc.nvim'
+Plugin 'rust-lang/rust.vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
-filetype plugin indent on    " required
-" To ignore plugin indent changes, instead use:
-"filetype plugin on
-"
-" Brief help
-" :PluginList       - lists configured plugins
-" :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
-" :PluginSearch foo - searches for foo; append `!` to refresh local cache
-" :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
-"
-" see :h vundle for more details or wiki for FAQ
-" Put your non-Plugin stuff after this line
-
-" inoremap ;; <Esc>
-" Sets the line numbers
 :set number
 :set relativenumber
 " Sets the tabs length for insertion and deletion
@@ -49,9 +38,11 @@ filetype plugin indent on    " required
 :set backspace=2
 " Needed for homebrewsyntax on
 syntax sync fromstart
+syntax on
+filetype plugin indent on
 set splitbelow
 set splitright
-set langmap=jn,ke,il,nj,ek,li,JN,KE,IL,NJ,EK,LI
+set langmap=jn,ke,il,nj,ek,li,mh,hm,JN,KE,IL,NJ,EK,LI,MH,HM
 nnoremap j gj
 nnoremap k gk
 nnoremap ^ g^
@@ -64,8 +55,9 @@ nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
 nnoremap <C-s> :setlocal spell!<CR>
 
-let b:ale_linters = ['flake8', 'mypy']
-let b:ale_fixers = ['autoflake', 'trim_whitespace', 'add_blank_lines_for_python_control_statements', 'autopep8']
+let b:ale_linters = ['flake8', 'mypy', 'pylint', 'hlint', 'hls']
+let g:ale_set_signs = 1
+" let b:ale_fixers = ['autoflake', 'trim_whitespace', 'add_blank_lines_for_python_control_statements', 'autopep8']
 
 function! Colemak()
     execute "set langmap=jn,ke,il,nj,ek,li,JN,KE,IL,NJ,EK,LI"
@@ -76,6 +68,11 @@ endfunction
 function! Qwerty()
     execute "set langmap="
 endfunction
+if $LAYOUT == "ColemakDH"
+    call ColemakDH()
+elseif $LAYOUT == "Qwerty"
+    call Qwerty()
+endif
 
 nmap <silent> <leader>aj :ALENext<cr>
 nmap <silent> <leader>ak :ALEPrevious<cr>

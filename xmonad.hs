@@ -9,14 +9,16 @@ import XMonad.Util.EZConfig
 import XMonad.Util.SpawnOnce
 import XMonad.Util.Run
 import XMonad.Layout.Spacing
+import XMonad.Layout.ThreeColumns
+import XMonad.Layout.ToggleLayouts
+import XMonad.Layout.NoBorders (noBorders)
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
-import Switch
 
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal      = "gnome-terminal"
+myTerminal      = "kitty"
 
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -54,13 +56,13 @@ myFocusedBorderColor = "#0030f0"
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
-myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
+myKeys conf@XConfig {XMonad.modMask = modm} = M.fromList $
 
     -- launch a terminal
     [ ((modm .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf)
 
     -- launch dmenu
-    , ((modm,               xK_p     ), spawn "dmenu_run")
+    , ((modm,               xK_p     ), spawn "dmenu_run -h 24")
 
     -- launch gmrun
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
@@ -73,6 +75,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     --  Reset the layouts on the current workspace to default
     , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
+
+    -- Toggle to Full
+    , ((modm .|. controlMask, xK_space), sendMessage ToggleLayout)
 
     -- Resize viewed windows to the correct size
     , ((modm,               xK_n     ), refresh)
@@ -114,7 +119,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_b     ), sendMessage Shrink)
 
     -- Expand the master area
-    , ((modm,               xK_B     ), sendMessage Expand)
+    , ((modm .|. shiftMask, xK_b     ), sendMessage Expand)
 
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)
@@ -153,13 +158,13 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((0              , 0x1008ff13)  , spawn "amixer -q -D pulse sset Master 5%+") 
 
     -- Cycle Audio Output
-    , ((modm              , xK_grave) , switch)
+    , ((modm              , xK_grave) , spawn "~/Haskell/LocalScripts/CycleSound")
 
-    -- reset pacmd
-    , ((modm              , xK_asciitilde),  spawn "pulseaudio --kill; sleep 0.2; pulseaudio --start" )
+    -- Cycle Audio Input
+    , ((modm              , xK_semicolon) , spawn "~/Haskell/LocalScripts/CycleInput")
 
     -- Quit xmonad
-    , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
+    , ((modm .|. shiftMask, xK_q     ), io exitSuccess)
 
     -- Restart xmonad
     , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
@@ -208,18 +213,18 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
 --
-myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
+myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList 
 
     -- mod-button1, Set the window to floating mode and move by dragging
-    [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w
-                                       >> windows W.shiftMaster))
+    [ ((modm, button1), \w -> focus w >> mouseMoveWindow w
+                                       >> windows W.shiftMaster)
 
     -- mod-button2, Raise the window to the top of the stack
-    , ((modm, button2), (\w -> focus w >> windows W.shiftMaster))
+    , ((modm, button2), \w -> focus w >> windows W.shiftMaster)
 
     -- mod-button3, Set the window to floating mode and resize by dragging
-    , ((modm, button3), (\w -> focus w >> mouseResizeWindow w
-                                       >> windows W.shiftMaster))
+    , ((modm, button3), \w -> focus w >> mouseResizeWindow w
+                                       >> windows W.shiftMaster)
 
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
     ]
@@ -235,9 +240,12 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = spacingRaw False (Border 5 25 7 7) True (Border 7 7 7 7) True $
-              (tiled ||| Mirror tiled ||| Full)
+myLayout = toggleLayouts (noBorders Full) $ spacingRaw False (Border 5 25 7 7) True (Border 7 7 7 7) True
+              (three ||| tiled ||| Mirror tiled ||| Full)
   where
+     -- my own layout 
+     three   = ThreeColMid nmaster delta (5/12)
+
      -- default tiling algorithm partitions the screen into two panes
      tiled   = Tall nmaster delta ratio
 
@@ -301,6 +309,11 @@ myLogHook = return ()
 myStartupHook = do
         spawnOnce "nitrogen --restore &"
         spawnOnce "compton &"
+        spawnOnce "autorandr desktop"
+        -- safeSpawn myTerminal ["cbonsai", "--live"]
+        spawn myTerminal
+        spawn myTerminal
+        spawn myTerminal
 
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.

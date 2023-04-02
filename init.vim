@@ -23,6 +23,7 @@ Plugin 'preservim/vim-lexical'
 Plugin 'ionide/ionide-vim'
 Plugin 'neoclide/coc.nvim'
 Plugin 'rust-lang/rust.vim'
+Plugin 'wfxr/minimap.vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -55,7 +56,7 @@ nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
 nnoremap <C-s> :setlocal spell!<CR>
 
-let b:ale_linters = ['flake8', 'mypy', 'pylint', 'hlint', 'hls']
+let b:ale_linters = ['flake8', 'mypy', 'hlint', 'hls']
 let g:ale_set_signs = 1
 
 " Layouts

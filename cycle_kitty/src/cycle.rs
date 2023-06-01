@@ -137,14 +137,16 @@ impl<'a> Cycle<'a> {
     }
 
     pub fn display_selection(&self, term: &Term) {
-        let max_display = term.size().0 as usize;
+        // reserve 1 for the current
+        // reserve 1 for the cursor
+        let max_display = (term.size().0 - 2) as usize;
         let buffer = max_display / 2;
         let min = self.current.checked_sub(buffer).unwrap_or(0);
-        let max = self.length.min(max_display + min + 1);
+        let max = self.length.min(max_display + min);
         for i in min..self.current {
             println!("{}", self.get_theme(i).theme_name());
         }
-        println!("{}", self.current_theme().theme_name().underline());
+        println!("{}", self.current_theme().theme_name().black().on_color("#fffacd"));
         for i in (self.current + 1)..max {
             println!("{}", self.get_theme(i).theme_name());
         }

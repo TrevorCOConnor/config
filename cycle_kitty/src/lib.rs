@@ -35,7 +35,7 @@ pub fn get_themes() -> Vec<Theme> {
         .map(|entry| entry.unwrap())
         .collect();
     let mut themes: Vec<Theme> = dirs.into_iter().map(|d| Theme(d)).collect();
-    themes.sort_by_key(|t| t.theme_name());
+    themes.sort_by_key(|t| t.theme_name().to_lowercase());
     themes
 }
 
@@ -56,4 +56,8 @@ pub fn set_theme(theme: &Theme) {
             ])
             .output()
             .expect("Kitty command failed");
+}
+
+pub fn create_path(name: &str) -> String {
+    format!("{KITTY_DIR}{name}.conf")
 }

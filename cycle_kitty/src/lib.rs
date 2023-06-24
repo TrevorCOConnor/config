@@ -26,6 +26,8 @@ fn get_kitty_dir() -> String {
 pub fn get_kitty_file() -> String {
     let home = env::var("HOME").expect("$HOME not set");
     format!("{}/{}", home, KITTY_FILE)
+        .trim_end_matches(".conf")
+        .to_string()
 }
 
 pub fn get_themes() -> Vec<Theme> {
@@ -44,7 +46,7 @@ pub fn set_theme(theme: &Theme) {
 
     fs::write(
         kitty_file,
-        theme.theme_name(),
+        theme.0.file_name().into_string().unwrap(),
     ).expect("Failed to set theme");
 
     Command::new("kitty")

@@ -2,7 +2,7 @@ use std::fs;
 use console::{Term, Key};
 
 mod cycle;
-// mod new;
+
 use cycle::Cycle;
 pub use cycle_kitty;
 

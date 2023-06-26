@@ -9,7 +9,9 @@ pub use cycle_kitty;
 
 fn main() {
     let themes = cycle_kitty::get_themes();
-    let current_theme = fs::read_to_string(cycle_kitty::get_kitty_file());
+    let current_theme = fs::read_to_string(
+        cycle_kitty::get_kitty_file()
+    ).map(|s| s.trim_end_matches(".conf").to_owned());
 
     let term = Term::stdout();
 

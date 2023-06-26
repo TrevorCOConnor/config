@@ -26,7 +26,6 @@ fn get_kitty_dir() -> String {
 pub fn get_kitty_file() -> String {
     let home = env::var("HOME").expect("$HOME not set");
     format!("{}/{}", home, KITTY_FILE)
-        .trim_end_matches(".conf")
         .to_string()
 }
 

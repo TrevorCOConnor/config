@@ -1,43 +1,63 @@
-use std::fs;
+use std::{fs, thread::spawn, sync::{Arc, Mutex}};
 use console::{Term, Key};
 
 mod cycle;
 
 use cycle::Cycle;
 pub use cycle_kitty;
-
+use cycle_kitty::set_theme_from_name;
 
 fn main() {
     let themes = cycle_kitty::get_themes();
-    let current_theme = fs::read_to_string(
-        cycle_kitty::get_kitty_file()
-    ).map(|s| s.trim_end_matches(".conf").to_owned());
+    let current_theme = fs::read_to_string(cycle_kitty::get_kitty_file());
 
-    let term = Term::stdout();
-
-    let mut cycle = {
+    let cycle = {
         if let Ok(theme) = current_theme {
-            Cycle::new_from_name(&theme, &themes)
+            Cycle::new_from_name(&theme, themes)
         } else {
-            Cycle::new(0, &themes)
+            Cycle::new(0, themes)
         }
     };
 
+    let arc = Arc::new(Mutex::new(cycle));
+    let term = Term::stdout();
+    term.clear_screen().unwrap();
+    {
+        arc.lock().unwrap().display_selection(&term);
+    }
+
     loop {
-        term.clear_screen().unwrap();
-        cycle.display_selection(&term);
         let key = term.read_key().expect("Invalid keystroke");
         match key {
             Key::Escape => {
-                cycle.apply_original_theme();
+                let og = arc
+                    .lock()
+                    .unwrap()
+                    .original_theme()
+                    .theme_name();
+                set_theme_from_name(&og);
                 break;
             },
             Key::Enter => {break;},
-            Key::ArrowUp => cycle.prev_wrap(),
-            Key::ArrowDown => cycle.next_wrap(),
-            Key::Backspace => cycle.query_del(),
-            Key::Char(c) => cycle.append_query(c),
-            _ => {}
+            _ => {
+                let arc = Arc::clone(&arc);
+                spawn(move || {
+                    let name = {
+                        let mut cycle = arc.lock().unwrap();
+                        match key {
+                            Key::ArrowUp => cycle.prev_wrap(),
+                            Key::ArrowDown => cycle.next_wrap(),
+                            Key::Backspace => cycle.query_del(),
+                            Key::Char(c) => cycle.append_query(&c),
+                            _ => {}
+                        };
+                        Term::stdout().clear_screen().unwrap();
+                        cycle.display_selection(&Term::stdout());
+                        cycle.current_theme().theme_name()
+                    };
+                    set_theme_from_name(&name);
+                });
+            },
         }
     }
 }

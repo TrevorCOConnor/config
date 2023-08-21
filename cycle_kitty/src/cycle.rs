@@ -1,10 +1,11 @@
 use colored::Colorize;
 
 use console::Term;
-use cycle_kitty::{set_theme, Theme};
+use cycle_kitty::Theme;
 
 
-pub fn find_kitty_theme_in_list(theme_name: &str, themes: &[Theme]) -> usize {
+fn find_kitty_theme_in_list(theme_name: &str, themes: &[Theme]) -> usize {
+    let theme_name = theme_name.trim_end_matches(".conf");
     for i in 0..themes.len() {
         if themes[i].theme_name() == theme_name {
             return i
@@ -13,21 +14,20 @@ pub fn find_kitty_theme_in_list(theme_name: &str, themes: &[Theme]) -> usize {
     0
 }
 
-pub struct Cycle<'a> {
+pub struct Cycle {
     original: usize,
     current: usize,
     length: usize,
-    themes: &'a Vec<Theme>,
+    themes: Vec<Theme>,
     query: String,
-    filtered_themes: Vec<&'a Theme>
+    filtered_themes: Vec<usize>
 }
 
-
-impl<'a> Cycle<'a> {
+impl Cycle {
     pub fn new(
-        original: usize, themes: &Vec<Theme>
+        original: usize, themes: Vec<Theme>
     ) -> Cycle {
-        let ref_themes = themes.iter().collect();
+        let ref_themes = (0..themes.len()).collect();
         Cycle {
             original,
             current: original,
@@ -38,7 +38,7 @@ impl<'a> Cycle<'a> {
         }
     }
 
-    pub fn new_from_name(name: &str, themes: &'a Vec<Theme>) -> Cycle<'a> {
+    pub fn new_from_name(name: &str, themes: Vec<Theme>) -> Cycle {
         let original = find_kitty_theme_in_list(name, &themes);
         Cycle::new(original, themes)
     }
@@ -47,25 +47,25 @@ impl<'a> Cycle<'a> {
         if !self.query.is_empty() {
             self.query.pop();
             self.update_themes();
-            self.apply_current_theme()
         }
     }
 
-    pub fn append_query(&mut self, c: char) {
-        self.query.push(c);
-        if self.update_themes() {
-            self.apply_current_theme()
-        } else {
+    pub fn append_query(&mut self, c: &char) {
+        self.query.push(c.to_owned());
+        let updated = self.update_themes();
+        if !updated {
             self.query.pop();
         }
     }
 
     fn update_themes(&mut self) -> bool {
-        let new: Vec<&Theme> = self.themes.iter().filter(
-            |t| t.theme_name().to_uppercase().starts_with(
+        // Attempts to update themes.
+        // Returns True if updates are non trivial
+        let new: Vec<usize> = self.themes.iter().enumerate().filter(
+            |(_, t)| t.theme_name().to_uppercase().starts_with(
                 &self.query.to_uppercase()
             )
-        ).collect();
+        ).map(|(e, _)| e).collect();
         if new.is_empty() {
             false
         } else {
@@ -82,8 +82,6 @@ impl<'a> Cycle<'a> {
         } else {
             self.current += 1;
         }
-
-        self.apply_current_theme()
     }
 
     #[allow(dead_code)]
@@ -91,8 +89,6 @@ impl<'a> Cycle<'a> {
         if self.current + 1 < self.length {
             self.current += 1;
         }
-
-        self.apply_current_theme()
     }
 
     pub fn prev_wrap(&mut self) {
@@ -101,8 +97,6 @@ impl<'a> Cycle<'a> {
         } else {
             self.current -= 1;
         }
-
-        self.apply_current_theme()
     }
 
     #[allow(dead_code)]
@@ -110,30 +104,22 @@ impl<'a> Cycle<'a> {
         if self.current > 0 {
             self.current -= 1;
         }
-
-        self.apply_current_theme()
     }
 
     fn get_theme(&self, index: usize) -> &Theme {
-        &self.filtered_themes.get(index)
-            .expect(&format!("Index {} not found", self.current))
+        let inner_index = self.filtered_themes.get(index)
+            .expect(&format!("Index {} not found", self.current));
+        self.themes.get(*inner_index)
+            .expect(&format!("Inner index not found."))
     }
 
-    fn current_theme(&self) -> &Theme {
+    pub fn current_theme(&self) -> &Theme {
         self.get_theme(self.current)
     }
 
-    fn original_theme(&self) -> &Theme {
+    pub fn original_theme(&self) -> &Theme {
         &self.themes.get(self.original)
             .expect(&format!("Index {} not found", self.current))
-    }
-
-    fn apply_current_theme(&self) {
-        set_theme(&self.current_theme())
-    }
-
-    pub fn apply_original_theme(&self) {
-        set_theme(&self.original_theme())
     }
 
     pub fn display_selection(&self, term: &Term) {
@@ -144,14 +130,17 @@ impl<'a> Cycle<'a> {
         let min = self.current.checked_sub(buffer).unwrap_or(0);
         let max = self.length.min(max_display + min);
         for i in min..self.current {
+            term.clear_line().unwrap();
             println!("{}", self.get_theme(i).theme_name());
         }
+        term.clear_line().unwrap();
         println!("{}", self.current_theme().theme_name().black().on_color("#fffacd"));
         for i in (self.current + 1)..max {
+            term.clear_line().unwrap();
             println!("{}", self.get_theme(i).theme_name());
         }
+        term.clear_line().unwrap();
         println!("{}", self.query);
-        term.move_cursor_up(1).unwrap();
-        term.move_cursor_right(self.query.len()).unwrap();
+        term.move_cursor_up(2).unwrap();
     }
 }

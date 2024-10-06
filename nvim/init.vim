@@ -6,13 +6,14 @@ set cmdheight=2
 
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
+set rtp+=~/.config/
+
 call vundle#begin()
 " alternatively, pass a path where Vundle should install plugins
 "call vundle#begin('~/some/path/here')
 
 " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
-Plugin 'preservim/nerdtree'
 Plugin 'tpope/vim-surround'
 Plugin 'nvie/vim-flake8'
 Plugin 'neovimhaskell/haskell-vim'
@@ -24,6 +25,12 @@ Plugin 'ionide/ionide-vim'
 Plugin 'neoclide/coc.nvim'
 Plugin 'rust-lang/rust.vim'
 Plugin 'wfxr/minimap.vim'
+Plugin 'airblade/vim-gitgutter'
+Plugin 'nvim-tree/nvim-tree.lua'
+Plugin 'nvim-tree/nvim-web-devicons'
+Plugin 'nvim-telescope/telescope.nvim'
+Plugin 'nvim-lua/plenary.nvim'
+Plugin 'BurntSushi/ripgrep'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -75,12 +82,10 @@ elseif $LAYOUT == "Qwerty"
     call Qwerty()
 endif
 
-" NerdTree
-" Start NERDTree. If a file is specified, move the cursor to its window.
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * NERDTree | if argc() > 0 || exists("s:std_in") | wincmd p | endif
-" Exit Vim if NERDTree is the only window remaining in the only tab.
-autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
-
 nmap <silent> <leader>aj :ALENext<cr>
 nmap <silent> <leader>ak :ALEPrevious<cr>
+
+set clipboard+=unnamedplus
+
+lua require('config')
+lua require('nvim-tree').setup()
